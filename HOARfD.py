@@ -3,7 +3,7 @@ HOARfD
 Headless On-demand Automatic Raspberry pi (Floppy) Dumper (The 'F' is silent)
 (dragons hoard treasure → you’re hoarding floppies)
 
-v4.0
+v4.1
 
 Description:
     This program is designed to run unattended on a dedicated headless Raspberry Pi.
