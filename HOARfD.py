@@ -89,9 +89,9 @@ def get_device_size(device_name):
         return 0
 
 def find_usb_stick():
-    """Finds a USB stick using the lsblk command."""
+    """Finds a USB stick using the lsblk command, ignoring the floppy drive."""
     try:
-        # Use lsblk to get device info in JSON format. This is more reliable than parsing plain text.
+        # Use lsblk to get device info in JSON format.
         result = subprocess.run(
             ['lsblk', '--json', '-b', '-o', 'NAME,TRAN,SIZE,TYPE'],
             capture_output=True, text=True, check=True
@@ -99,15 +99,18 @@ def find_usb_stick():
         devices = json.loads(result.stdout)['blockdevices']
 
         for device in devices:
-            # We are looking for USB devices that are large enough to be a USB stick.
-            if device.get('tran') == 'usb' and device.get('size', 0) > 100 * 1024 * 1024:
+            # We are looking for a USB device that is large enough to be a USB stick
+            # AND is explicitly not the designated floppy drive.
+            if (device.get('tran') == 'usb' and
+                    device.get('size', 0) > 100 * 1024 * 1024 and
+                    device.get('name') != FLOPPY_DEVICE_NAME):
+                
                 # Case 1: The device has partitions. Find and return the first partition.
                 if 'children' in device and device['children']:
                     for partition in device['children']:
                         if partition.get('type') == 'part':
                             return f"/dev/{partition['name']}"
-                # Case 2: The device has no partitions (e.g., formatted as a single block device).
-                # We return the device itself.
+                # Case 2: The device has no partitions. Return the device itself.
                 elif device.get('type') == 'disk':
                         return f"/dev/{device['name']}"
 
